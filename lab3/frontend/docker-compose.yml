@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  react-frontend:
+    build:
+      context: .
+
+  letsencrypt:
+    image: linuxserver/letsencrypt
+    container_name: letsencrypt
+    depends_on:
+      - react-frontend
+    volumes:
+      - ./config:/config
+      - ./default:/config/nginx/site-confs/default
+    environment:
+      - EMAIL=salzatec1@eafit.edu.co
+      - URL=reto-telekinesis.tk
+      - SUBDOMAINS=www
+      - VALIDATION=http
+      - TZ="America/Bogota"
+      - PUID=500
+      - PGID=500
+    ports:
+      - "443:443"
+      - "80:80"
+
+volumes:
+  data:
+  log:
