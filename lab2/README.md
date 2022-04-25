@@ -31,7 +31,14 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 ```
 
-4. Corremos docker-compose
+4. Creamos un arhivo docker-compose.yml el cual contiene tres imagenes: wordpress, db y swag (letsencrypt). El container de letsencrypt se encargara de generar
+los certificados y hacer la redireccion al container de wordpress.
+
+5. Creamos un archivo llamado default que es un archivo de configuracion de nginx que va a utilizar nuestra imagen de letsencrypt para
+redireccionar las peticiones al container de wordpress y responder
+
+
+6. Corremos docker-compose
 
 ```bash
 
