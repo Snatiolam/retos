@@ -9,3 +9,13 @@ Todo esto se logra a travez de docker.
 El segundo reto o lab3 consiste en desplegar una aplicacion donde el backend, frontend y el modelo se comuniquen entre si,
 dockerizando tanto el frontend como el backend y asegurando la pagina con un certificado ssl. El modelo tambien se desplegara
 en la nube en una maquina de aws utilizando mongo como tecnologia.
+
+Los dominios para cada laboratorio son respectivamente:
+
+ ## Laboratorio 2
+ 
+ www.telematica-dns-alzate.tk
+ 
+ ## Laboratorio 3
+ 
+  www.reto-telekinesis.tk
