@@ -1,70 +1,159 @@
-# Getting Started with Create React App
+# Creación del frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Primero procedemos a instalar docker:
 
-## Available Scripts
+```bash
+sudo yum update -y
+sudo yum install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+```
 
-In the project directory, you can run:
+Ahora podemos instalar docker-compose:
 
-### `npm start`
+```bash
+sudo curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Ahora que tenemos docker instalado y corriendo podemos crear nuestro Dockerfile para poder armar una imagen que puedan compilar y correr una aplicación en React.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Abre Dockerfile con tu editor de texto favorito (Vim)
 
-### `npm test`
+Usaremos una imagen base de node:14-alpine y la llamaremos build con la directiva *FROM* de docker
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Definimos el directorio en el cual estaremos trabajando. Ej: *WORKDIR /usr/src/app*
 
-### `npm run build`
+Copiamos todos los archivos package\*.json a nuestro "container" con la directiva *COPY* de docker
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Despues corremos el comando npm install con la directiva *RUN* de docker
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Copiamos de nuevo el resto de archivos que son el codigo fuente y configuraciones a nuestro container
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Ahora corremos 'npm run build' para compilar el codigo de React con la directiva *RUN* de docker
 
-### `npm run eject`
+```dockerfile
+FROM node:14-alpine as build
+WORKDIR /usr/src/app
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
+COPY package*.json ./
+Run npm install
+COPY . ./
+RUN npm run build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Ahora que nuestro codigo fue compilado exitosamente podemos utilizar una imagen nginx para correr la aplicacion con el html, css y js generado.
+Es importante utilizar la version 1.12.0 de nginx debido a que la configuracion que estamos usando funciona unicamente para esa versión
+```dockerfile
+FROM nginx:1.12.0-alpine
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Ahora copiamos la respectiva configuración de nginx que es el archivo nginx.conf en /etc/nginx/nginx.conf que es donde nginx mira su configuracion por defecto en el container.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```dockerfile
+COPY ./nginx.conf /etc/nginx/nginx.conf
+```
 
-## Learn More
+Copiamos todos los archivos que compilamos de la imagen anterior en nuestro directorio de trabajo (/usr/src/app) a /usr/share/nginx/html/bookstore que es donde nuestra configuracion de nginx tiene su root de la aplicacion
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```dockerfile
+COPY --from=build /usr/src/app/build /usr/share/nginx/html/bookstore
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+*nginx.conf:*
 
-### Code Splitting
+```
+...
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+upstream backend {
+        server 172.31.88.2:5000;
+    }
+    server {
+        listen       80 default_server;
+        listen       [::]:80 default_server;
+        server_name  _;
+        root         /usr/share/nginx/html/bookstore;
 
-### Analyzing the Bundle Size
+...
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Ahora que tenemos nuestro Dockerfile listo nos falta asegurar la aplicación, para esto utilizaremos una imagen de letsencrypt linuxserver/letsencrypt o linuxserver/swag,
+ambas son validas pero linuxserver/letsencypt dejo de ser mantenida. Sin embargo sus configuraciones son exactamente iguales.
 
-### Making a Progressive Web App
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Primero creamos un docker-compose.yml con nuestro editor de texto favorito y añadimos un servicio que va a ser nuestra aplicacion en React:
 
-### Advanced Configuration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+version: '3'
 
-### Deployment
+services:
+  react-frontend:
+    build:
+      context: .
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Llamamos nuestro servicio react-frontend y le decimos que arme la imagen con el Dockerfile en el directorio actual (.)
 
-### `npm run build` fails to minify
+Ahora podemos agregar un nuevo servicio que es el de letsencrypt el cual tendra unas variables de entorno necesarios para generar un certificado valido.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+  letsencrypt:
+    image: linuxserver/letsencrypt
+    container_name: letsencrypt
+    depends_on:
+      - react-frontend
+    volumes:
+      - ./config:/config
+      - ./default:/config/nginx/site-confs/default
+    environment:
+      - EMAIL=salzatec1@eafit.edu.co
+      - URL=reto-telekinesis.tk
+      - SUBDOMAINS=www
+      - VALIDATION=http
+      - TZ="America/Bogota"
+      - PUID=500
+      - PGID=500
+    ports:
+      - "443:443"
+      - "80:80"
+```
+
+La URL sera el dominio el cual obtuvimos y en el que estara corriendo nuestra aplicacion, en nuestro caso reto-telekinesis.tk.
+
+Los SUBDOMAINS son los subdominios que tambien certificaremos dentro del dominio
+
+El EMAIL es opcional
+
+TZ es la zona en la que esta corriendo la aplicacion
+
+PUID y PGID son los id del usuario y el grupo con los que trabaja letsencrypt en su imagen
+
+Conectamos los puertos 443 y 80 del container letsencrypt y los "Mapeamos" a los respectivos puertos en nuestra maquina local
+
+El depends_on significa que usara de la imagen react-frontend por lo que usara algunas configuraciones de esta.
+
+Ahora debemos crear un archivo default que es una configuracion de nginx y necesita letsencrypt para recibir las peticiones de los clientes y redirigirlas al container que corre la aplicación.
+
+Cambiamos la linea proxy_pass por el nombre del servicion que necesitaba letsencrypt para redirigir las peticiones.
+
+
+```
+...
+ location @app {
+        proxy_pass http://react-frontend;
+        proxy_set_header Host $host;
+...
+```
+
+Con todo montado procedemos a subir los servicios con docker-compose:
+
+```bash
+sudo docker-compose up -d
+```
+
+La opción -d nos permite hacer un detach de la terminal por lo que el proceso correra en segundo plano
+
+No olvides abrir los puertos 443 y 80 de los security groups de la maquina frontend para que se puedan recibir las peticiones.
