@@ -10,6 +10,11 @@ El segundo reto o lab3 consiste en desplegar una aplicacion donde el backend, fr
 dockerizando tanto el frontend como el backend y asegurando la pagina con un certificado ssl. El modelo tambien se desplegara
 en la nube en una maquina de aws utilizando mongo como tecnologia.
 
+Los dominios para ambos laboratios fueron obtenidos a traves de la pagina de Freenom.com.
+
+Una vez obtenido los dominios importante crear un registro tipo A (address) que apunte a las direcciones de las ip elasticas correspondientes a las maquinas
+que reciben las peticiones HTTP/HTTPS, en el lab3 esta maquina es el frontend.
+
 Los dominios para cada laboratorio son respectivamente:
 
  ## Laboratorio 2

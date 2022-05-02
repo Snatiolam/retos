@@ -2,6 +2,10 @@
 
 Este reto consiste en desplegar una aplicacion en wordpress, dockerizarla y asegurar la pagina con un certificado ssl.
 
+## Nota
+
+Cree una ip elastica y asignesela a la maquina para que tener que cambiar los registros DNS cada vez que su maquina se reinicie.
+
 1. Actualizamos el sistema e instalamos docker
 
 ```bash
@@ -45,3 +49,7 @@ redireccionar las peticiones al container de wordpress y responder
 sudo docker-compose up -d
 
 ```
+
+## Importante
+
+Abrir los puertos *80* y *443* de la maquina para que la aplicacion pueda recibir las peticiones HTTP/HTTPS

@@ -1,6 +1,32 @@
 # Creación del frontend
 
-Primero procedemos a instalar docker:
+Primero edite el archivo nginx.conf el cual esta en el repositorio.
+Agregue la ip privada en la cual esta en backend agregando:
+
+```
+upstream backend {
+    server <ip>:5000;
+}
+
+```
+
+Donde <ip> es la ip privada de su servidor backend. En nuestro caso es 172.31.88.2.
+
+Luego cambie el root donde quiere que su aplicacion este alojada:
+
+```
+...
+
+    server {
+        listen       80 default_server;
+        listen       [::]:80 default_server;
+        server_name  _;
+        root         /usr/share/nginx/html/bookstore;
+
+...
+```
+
+Procedemos a instalar docker:
 
 ```bash
 sudo yum update -y
@@ -60,23 +86,6 @@ Copiamos todos los archivos que compilamos de la imagen anterior en nuestro dire
 
 ```dockerfile
 COPY --from=build /usr/src/app/build /usr/share/nginx/html/bookstore
-```
-
-*nginx.conf:*
-
-```
-...
-
-upstream backend {
-        server 172.31.88.2:5000;
-    }
-    server {
-        listen       80 default_server;
-        listen       [::]:80 default_server;
-        server_name  _;
-        root         /usr/share/nginx/html/bookstore;
-
-...
 ```
 
 Ahora que tenemos nuestro Dockerfile listo nos falta asegurar la aplicación, para esto utilizaremos una imagen de letsencrypt linuxserver/letsencrypt o linuxserver/swag,
