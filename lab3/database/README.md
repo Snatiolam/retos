@@ -37,3 +37,12 @@ Donde <data> es la informacion a insertar en la base de datos.
 Cambiamos el bindIp 127.0.0.1 por 0.0.0.0
 
 Descomentamos la directiva security y ponemos authorization : "enabled"
+
+```
+bindIp 0.0.0.0
+
+...
+
+security:
+    authorization: "enabled"
+```
