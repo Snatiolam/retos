@@ -39,9 +39,12 @@ sudo docker run -d -p 5000:5000 --name backend_container backend_image
 ```
 
 La opcion -d nos permite hacer un detach del container para que no siga corriendo en la terminal
+
 La opcion -p nos permite hacer un bind de puertos, en este caso el puerto 5000 del container (derecha) 
 se encuentra vinculado al puerto 5000 de nuestra maquina (izquierda).
+
 La opcion --name nos permite darle un nombre a nuestro contenerdor para poder reconocerlos mas facilmente
+
 Por ultimo ponemos la imagen que usaremos para correr el contenedor
 
 Ahora nuestra aplicacion backend esta corriendo exitosamente en el puerto 5000 de nuestra maquina.
